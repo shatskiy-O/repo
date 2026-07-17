@@ -1,0 +1,15 @@
+# FreePBX Failover — cron (одинаковый на обеих нодах .202 и .203)
+# Установка:  crontab -e   и вставить строки ниже.
+# Логика ролей определяется внутри скриптов по наличию VIP 172.19.3.202,
+# поэтому строки безопасно держать на обоих узлах.
+
+# Авто-failover: проверка мастера каждую минуту
+* * * * * /usr/local/sbin/pbx_failover.sh >/dev/null 2>&1
+
+# Синхронизация CDR/CEL/записей с мастера — каждые 5 минут
+*/5 * * * * /bin/bash /root/sync_from_202.sh >> /var/log/pbx_sync.log 2>&1
+
+# Синхронизация конфигурации FreePBX — каждый час
+0 * * * * /bin/bash /root/sync_freepbx_config.sh >> /var/log/pbx_sync_config.log 2>&1
+
+# pbx_reverse_sync.sh запускается ВРУЧНУЮ (в cron не добавляется).
