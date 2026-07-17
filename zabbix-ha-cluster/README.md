@@ -55,10 +55,3 @@
                  │ watchdog→Telegram│
                  └──────────────────┘
 ```
-
----
-
-> ⚠️ **Секреты / Secrets:** во всех файлах чувствительные значения заменены плейсхолдерами
-> (`<DB_PASSWORD>`, `<REPL_PASSWORD>`, `<VRRP_PASSWORD>`, `<TELEGRAM_BOT_TOKEN>`,
-> `<TELEGRAM_CHAT_ID>`, `<SOCKS_PROXY_HOST:PORT>`). Реальные значения — в защищённом хранилище. /
-> All sensitive values are placeholders; real values live in secure storage.
