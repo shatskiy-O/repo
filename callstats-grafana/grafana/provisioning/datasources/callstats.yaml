@@ -1,0 +1,27 @@
+# =============================================================================
+# callstats-grafana / Grafana / provisioning / datasources / callstats.yaml
+#
+# Провижининг datasource. Пароль читается из переменной окружения ${CALLSTATS_RO_PASS}
+# внутри контейнера — прокидывать через docker-compose environment или Docker secrets.
+#
+# UID фиксирован, чтобы дашборды могли на него ссылаться. Не меняйте после установки.
+# =============================================================================
+
+apiVersion: 1
+
+datasources:
+  - name: Callstats-MySQL
+    uid: PC8CDFBD862B3D820
+    type: mysql
+    access: proxy
+    # host.docker.internal резолвится в хост-машину, где живёт SSH-туннель
+    url: host.docker.internal:3307
+    database: callstats
+    user: callstats_ro
+    editable: false
+    secureJsonData:
+      password: ${CALLSTATS_RO_PASS}
+    jsonData:
+      maxOpenConns: 10
+      maxIdleConns: 10
+      connMaxLifetime: 14400

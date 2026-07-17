@@ -1,0 +1,20 @@
+# =============================================================================
+# callstats-grafana / Grafana / provisioning / dashboards / callstats-provider.yaml
+#
+# Указывает Grafana загружать JSON-дашборды из /etc/grafana/dashboards
+# (в контейнере), что монтируется из /opt/grafana/dashboards хоста.
+# =============================================================================
+
+apiVersion: 1
+
+providers:
+  - name: 'Callstats'
+    folder: 'Callstats'
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: false

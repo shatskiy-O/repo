@@ -1,0 +1,35 @@
+# =============================================================================
+# callstats-grafana / Grafana / systemd / ats-mysql-tunnel.service
+#
+# Устойчивый SSH-туннель Grafana VM → MariaDB на АТС.
+# Проброс 127.0.0.1:3307 (VM) → 127.0.0.1:3306 (АТС).
+#
+# Устанавливается в /etc/systemd/system/ats-mysql-tunnel.service на VM.
+#
+# Перед установкой:
+#   1. Замените ${ATS_SSH_USER}, ${ATS_HOST}, путь к ключу и ${GF_LOCAL_TUNNEL_PORT}.
+#   2. Ключ должен лежать по указанному пути с chmod 600, вне git.
+#   3. На АТС в ~${ATS_SSH_USER}/.ssh/authorized_keys добавить публичный ключ.
+# =============================================================================
+
+[Unit]
+Description=AutoSSH tunnel to ATS MySQL (local 127.0.0.1:3307 -> ATS 127.0.0.1:3306)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=tor
+Environment=AUTOSSH_GATETIME=0
+ExecStart=/usr/lib/autossh/autossh -M 0 -NT \
+  -i /home/tor/.ssh/ats_grafana_rsa \
+  -o ExitOnForwardFailure=yes \
+  -o ServerAliveInterval=30 \
+  -o ServerAliveCountMax=3 \
+  -o StrictHostKeyChecking=accept-new \
+  -L 127.0.0.1:3307:127.0.0.1:3306 \
+  grafana@ATS_HOST_PLACEHOLDER
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

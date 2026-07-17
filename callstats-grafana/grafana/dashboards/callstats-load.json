@@ -1,0 +1,626 @@
+{
+  "uid": "callstats-load",
+  "title": "Колл-центр — Нагрузка",
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "callstats",
+    "нагрузка",
+    "отчёт"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "queue",
+        "label": "Очередь",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "PC8CDFBD862B3D820"
+        },
+        "refresh": 2,
+        "query": "SELECT DISTINCT queuename FROM queue_daily ORDER BY queuename",
+        "definition": "SELECT DISTINCT queuename FROM queue_daily ORDER BY queuename",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "current": {
+          "text": "Все",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "agent",
+        "label": "Оператор",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "PC8CDFBD862B3D820"
+        },
+        "refresh": 2,
+        "query": "SELECT DISTINCT agent FROM queue_calls WHERE agent IS NOT NULL AND agent<>'' AND queuename LIKE '${queue:raw}' ORDER BY agent",
+        "definition": "SELECT DISTINCT agent FROM queue_calls WHERE agent IS NOT NULL AND agent<>'' AND queuename LIKE '${queue:raw}' ORDER BY agent",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "current": {
+          "text": "Все",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Получено",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Отвечено",
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '') AND disposition='ANSWERED'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Неотвечено (ABANDON)",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '') AND disposition='ABANDON'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Несостоявшийся",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT COUNT(*) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '') AND disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY')",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "% Отвеченных",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(SUM(disposition='ANSWERED')/NULLIF(COUNT(*),0)*100,1) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Ср. ожидание",
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT ROUND(AVG(TIMESTAMPDIFF(SECOND, enter_ts, connect_ts)),1) AS value FROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '') AND disposition='ANSWERED'",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Нагрузка по неделям (Получено / Отвечено / Неотвечено / Несост.)",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  DATE(DATE_SUB(enter_ts, INTERVAL WEEKDAY(enter_ts) DAY)) AS time,\n  COUNT(*)                                                      AS `Получено`,\n  SUM(disposition='ANSWERED')                                   AS `Отвечено`,\n  SUM(disposition='ABANDON')                                    AS `Неотвечено`,\n  SUM(disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY')) AS `Несостоявшийся`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')\nGROUP BY time ORDER BY time",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Нагрузка по часам дня",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  HOUR(enter_ts) AS `Час`,\n  COUNT(*)                                                      AS `Получено`,\n  SUM(disposition='ANSWERED')                                   AS `Отвечено`,\n  SUM(disposition='ABANDON')                                    AS `Неотвечено`,\n  SUM(disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY')) AS `Несостоявшийся`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')\nGROUP BY `Час` ORDER BY `Час`",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "xField": "Час",
+        "orientation": "vertical",
+        "groupWidth": 0.7,
+        "barWidth": 0.97,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "barchart",
+      "title": "Среднее ожидание/разговор по часам (сек)",
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  HOUR(enter_ts) AS `Час`,\n  ROUND(AVG(TIMESTAMPDIFF(SECOND, enter_ts, connect_ts)),1) AS `Ср. ожидание`,\n  ROUND(AVG(TIMESTAMPDIFF(SECOND, connect_ts, end_ts)),1)   AS `Ср. разговор`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')\n  AND disposition='ANSWERED' AND end_ts IS NOT NULL\nGROUP BY `Час` ORDER BY `Час`",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "xField": "Час",
+        "orientation": "vertical",
+        "groupWidth": 0.7,
+        "barWidth": 0.97,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "type": "barchart",
+      "title": "Нагрузка по дням недели",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CASE DAYOFWEEK(enter_ts)\n    WHEN 2 THEN '1 Пн' WHEN 3 THEN '2 Вт' WHEN 4 THEN '3 Ср'\n    WHEN 5 THEN '4 Чт' WHEN 6 THEN '5 Пт' WHEN 7 THEN '6 Сб'\n    WHEN 1 THEN '7 Вс' END AS `День`,\n  COUNT(*)                                                      AS `Получено`,\n  SUM(disposition='ANSWERED')                                   AS `Отвечено`,\n  SUM(disposition='ABANDON')                                    AS `Неотвечено`,\n  SUM(disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY')) AS `Несостоявшийся`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')\nGROUP BY `День` ORDER BY `День`",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "xField": "День",
+        "orientation": "vertical",
+        "groupWidth": 0.7,
+        "barWidth": 0.97,
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "type": "table",
+      "title": "KPI по дням недели",
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CASE DAYOFWEEK(enter_ts)\n    WHEN 2 THEN 'Пн' WHEN 3 THEN 'Вт' WHEN 4 THEN 'Ср'\n    WHEN 5 THEN 'Чт' WHEN 6 THEN 'Пт' WHEN 7 THEN 'Сб'\n    WHEN 1 THEN 'Вс' END AS `День`,\n  COUNT(*)                                                     AS `Получено`,\n  SUM(disposition='ANSWERED')                                  AS `Отвечено`,\n  SUM(disposition='ABANDON')                                   AS `Неотвечено`,\n  SUM(disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY'))AS `Несост.`,\n  ROUND(SUM(disposition='ANSWERED')/NULLIF(COUNT(*),0)*100,1)  AS `% Отв`,\n  ROUND(AVG(CASE WHEN disposition='ANSWERED'\n             THEN TIMESTAMPDIFF(SECOND, enter_ts, connect_ts) END),1) AS `Ср.ожид (с)`,\n  ROUND(AVG(CASE WHEN disposition='ANSWERED' AND end_ts IS NOT NULL\n             THEN TIMESTAMPDIFF(SECOND, connect_ts, end_ts) END),1)   AS `Ср.разг (с)`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '')\nGROUP BY DAYOFWEEK(enter_ts) ORDER BY DAYOFWEEK(enter_ts)",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "reducer": [
+            "sum"
+          ],
+          "show": false,
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 40,
+      "type": "table",
+      "title": "Нагрузка по операторам",
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  agent AS `Оператор`,\n  COUNT(*)                                                      AS `Получено`,\n  SUM(disposition='ANSWERED')                                   AS `Отвечено`,\n  SUM(disposition='ABANDON')                                    AS `Неотвечено`,\n  SUM(disposition IN ('ABANDON','EXITWITHTIMEOUT','EXITEMPTY')) AS `Несост.`,\n  ROUND(SUM(disposition='ANSWERED')/NULLIF(COUNT(*),0)*100,1)   AS `% Отв`,\n  ROUND(AVG(CASE WHEN disposition='ANSWERED'\n             THEN TIMESTAMPDIFF(SECOND, enter_ts, connect_ts) END),1) AS `Ср.ожид (с)`,\n  ROUND(AVG(CASE WHEN disposition='ANSWERED' AND end_ts IS NOT NULL\n             THEN TIMESTAMPDIFF(SECOND, connect_ts, end_ts) END),1)   AS `Ср.разг (с)`,\n  ROUND(SUM(CASE WHEN disposition='ANSWERED' AND end_ts IS NOT NULL\n             THEN TIMESTAMPDIFF(SECOND, connect_ts, end_ts) END)/60,1) AS `Мин разг`,\n  ROUND(AVG(CASE WHEN disposition='ANSWERED' AND end_ts IS NOT NULL\n             THEN TIMESTAMPDIFF(SECOND, enter_ts, connect_ts)\n                + TIMESTAMPDIFF(SECOND, connect_ts, end_ts) END),1)   AS `AHT (с)`\nFROM queue_calls WHERE $__timeFilter(enter_ts) AND queuename LIKE '${queue:raw}' AND (agent LIKE '${agent:raw}' OR agent IS NULL OR agent = '') AND agent IS NOT NULL AND agent<>''\nGROUP BY agent ORDER BY `Отвечено` DESC",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "reducer": [
+            "sum"
+          ],
+          "show": false,
+          "fields": ""
+        }
+      }
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "weekStart": "monday"
+}

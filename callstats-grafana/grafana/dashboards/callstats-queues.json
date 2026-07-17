@@ -1,0 +1,419 @@
+{
+  "uid": "callstats-queues",
+  "title": "Колл-центр — Очереди",
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "30s",
+  "tags": [
+    "callstats",
+    "очереди"
+  ],
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "queue",
+        "label": "Очередь",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "PC8CDFBD862B3D820"
+        },
+        "refresh": 2,
+        "query": "SELECT DISTINCT queuename FROM queue_daily ORDER BY queuename",
+        "definition": "SELECT DISTINCT queuename FROM queue_daily ORDER BY queuename",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "current": {
+          "text": "Все",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "agent",
+        "label": "Оператор",
+        "type": "query",
+        "datasource": {
+          "type": "mysql",
+          "uid": "PC8CDFBD862B3D820"
+        },
+        "refresh": 2,
+        "query": "SELECT DISTINCT agent FROM queue_calls WHERE agent IS NOT NULL AND agent<>'' AND queuename LIKE '${queue:raw}' ORDER BY agent",
+        "definition": "SELECT DISTINCT agent FROM queue_calls WHERE agent IS NOT NULL AND agent<>'' AND queuename LIKE '${queue:raw}' ORDER BY agent",
+        "multi": false,
+        "includeAll": true,
+        "allValue": "%",
+        "current": {
+          "text": "Все",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Предложено / Принято / Брошено / Несостоявшийся (по дням)",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 8
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CAST(CONCAT(day,' 00:00:00') AS DATETIME) AS time,\n  SUM(offered)       AS offered,\n  SUM(answered)      AS answered,\n  SUM(abandoned)     AS abandoned,\n  SUM(not_completed) AS not_completed\nFROM queue_daily\nWHERE $__timeFilter(day) AND queuename LIKE '${queue:raw}'\nGROUP BY day ORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "ASA (сек) — взвешенная",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 6
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CAST(CONCAT(day,' 00:00:00') AS DATETIME) AS time,\n  CASE WHEN SUM(answered)>0\n       THEN SUM(asa_sec*answered)/SUM(answered) ELSE NULL END AS asa_sec\nFROM queue_daily\nWHERE $__timeFilter(day) AND queuename LIKE '${queue:raw}'\nGROUP BY day ORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Брошенные (%)",
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 12,
+        "h": 6
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CAST(CONCAT(day,' 00:00:00') AS DATETIME) AS time,\n  CASE WHEN SUM(offered)>0\n       THEN SUM(abandoned)/SUM(offered)*100.0 ELSE NULL END AS abandon_rate\nFROM queue_daily\nWHERE $__timeFilter(day) AND queuename LIKE '${queue:raw}'\nGROUP BY day ORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "SLA 20s / SLA 30s (%)",
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 6
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  CAST(CONCAT(day,' 00:00:00') AS DATETIME) AS time,\n  CASE WHEN SUM(answered)>0\n       THEN SUM(sla_20_pct*answered)/SUM(answered) ELSE NULL END AS sla20,\n  CASE WHEN SUM(answered)>0\n       THEN SUM(sla_30_pct*answered)/SUM(answered) ELSE NULL END AS sla30\nFROM queue_daily\nWHERE $__timeFilter(day) AND queuename LIKE '${queue:raw}'\nGROUP BY day ORDER BY day",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "auto",
+            "spanNulls": true
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "heatmap",
+      "title": "Ожидание ответа: heatmap (15 мин × 5 сек, >120с в верхнюю корзину)",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  FROM_UNIXTIME(FLOOR(UNIX_TIMESTAMP(enter_ts)/900)*900) AS time,\n  CASE WHEN TIMESTAMPDIFF(SECOND, enter_ts, connect_ts) > 120\n       THEN '>120'\n       ELSE LPAD(FLOOR(TIMESTAMPDIFF(SECOND, enter_ts, connect_ts)/5)*5, 5, '0')\n  END AS metric,\n  COUNT(*) AS value\nFROM queue_calls\nWHERE $__timeFilter(enter_ts)\n  AND disposition='ANSWERED'\n  AND connect_ts IS NOT NULL\n  AND queuename LIKE '${queue:raw}'\n  AND agent LIKE '${agent:raw}'\nGROUP BY time, metric\nORDER BY time, metric",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "tooltip": false,
+              "viz": false,
+              "legend": false
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "calculate": false,
+        "calculation": {
+          "xBuckets": {
+            "mode": "size",
+            "value": ""
+          },
+          "yBuckets": {
+            "mode": "size",
+            "value": "",
+            "scale": {
+              "type": "linear",
+              "log": 2
+            }
+          }
+        },
+        "cellGap": 1,
+        "cellRadius": 0,
+        "cellValues": {
+          "unit": "short"
+        },
+        "color": {
+          "mode": "scheme",
+          "scheme": "Oranges",
+          "fill": "dark-orange",
+          "exponent": 0.5,
+          "steps": 64,
+          "reverse": false,
+          "min": null,
+          "max": null
+        },
+        "exemplars": {
+          "color": "rgba(255,0,255,0.7)"
+        },
+        "filterValues": {
+          "le": 1e-09
+        },
+        "legend": {
+          "show": true
+        },
+        "rowsFrame": {
+          "layout": "auto"
+        },
+        "showValue": "never",
+        "tooltip": {
+          "mode": "single",
+          "yHistogram": false,
+          "showColorScale": false
+        },
+        "yAxis": {
+          "axisPlacement": "left",
+          "reverse": false,
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Топ операторов (за период)",
+      "gridPos": {
+        "x": 0,
+        "y": 30,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "mysql",
+        "uid": "PC8CDFBD862B3D820"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "mysql",
+            "uid": "PC8CDFBD862B3D820"
+          },
+          "rawQuery": true,
+          "rawSql": "SELECT\n  agent AS `Оператор`,\n  COUNT(*)                                                             AS `Принято`,\n  ROUND(AVG(TIMESTAMPDIFF(SECOND, enter_ts, connect_ts)),2)            AS `Ожидание, сек`,\n  ROUND(AVG(TIMESTAMPDIFF(SECOND, connect_ts, IFNULL(end_ts, NOW()))),2) AS `Разговор, сек`,\n  ROUND(SUM(TIMESTAMPDIFF(SECOND, connect_ts, IFNULL(end_ts, NOW())))/60,2) AS `Разговор, мин`\nFROM queue_calls\nWHERE $__timeFilter(enter_ts) AND disposition='ANSWERED'\n  AND queuename LIKE '${queue:raw}'\n  AND agent IS NOT NULL AND agent<>''\n  AND agent LIKE '${agent:raw}'\nGROUP BY agent ORDER BY `Принято` DESC",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "reducer": [
+            "sum"
+          ],
+          "show": false,
+          "fields": ""
+        }
+      }
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "weekStart": "monday"
+}

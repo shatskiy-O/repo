@@ -1,0 +1,33 @@
+# Секреты
+.env
+.env.local
+*.key
+*.pem
+id_rsa*
+ats_grafana_rsa*
+.callstats_db.conf
+
+# Локальные бэкапы
+backup_*/
+backup_GOLDEN_*/
+*.bak
+*.bak_*
+
+# Grafana runtime
+data/
+grafana-storage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+docker-compose.override.yml
+
+# Логи
+*.log
